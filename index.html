@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vanco</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: auto;
+            background: #fff;
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h4 {
+            color: #333;
+            text-align: center;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="number"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        button {
+            width: 48%;
+            padding: 10px;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        #calculateBtn {
+            background: #1a5f7a;
+        }
+
+        #clearBtn {
+            background: #ffa500;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e9e9e9;
+            border-radius: 4px;
+            min-height: 195px;
+        }
+
+        .warning {
+            color: red;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h4>vanco</h4>
+        <form id="dosageForm">
+            <label for="dosage">Enter Vancomycin Dose (mg):</label>
+            <input type="number" id="dosage" name="dosage" required min="1">
+            <div class="button-container">
+                <button type="submit" id="calculateBtn">Calculate</button>
+                <button type="button" id="clearBtn">Clear</button>
+            </div>
+        </form>
+        <div id="result"></div>
+    </div>
+
+    <script>
+        document.getElementById('dosageForm').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const dose = parseInt(document.getElementById('dosage').value);
+            const result = calculateDosage(dose);
+            displayResult(result);
+        });
+
+        document.getElementById('clearBtn').addEventListener('click', function () {
+            document.getElementById('dosage').value = '';
+            document.getElementById('result').innerHTML = '';
+        });
+
+        function calculateDosage(dose) {
+            let bagSize, infusionTime, rate, concentration, mgPerHour;
+
+            if (dose <= 250) {
+                bagSize = 100;
+                infusionTime = 60;
+            } else if (dose <= 500) {
+                bagSize = 100;
+                infusionTime = 60;
+            } else if (dose <= 1250) {
+                bagSize = 250;
+                infusionTime = 90;
+            } else {
+                bagSize = 500;
+                infusionTime = 180;
+            }
+
+            concentration = (dose / bagSize).toFixed(2);
+            mgPerHour = (dose / (infusionTime / 60)).toFixed(2);
+
+            // Check if concentration exceeds 5mg/ml or rate exceeds 1000mg/hr and adjust if necessary
+            if (parseFloat(concentration) > 5 || parseFloat(mgPerHour) > 1000) {
+                bagSize = 1000;
+                infusionTime = Math.max(180, Math.ceil(dose / 1000) * 60); // Ensure at least 3 hours and not exceeding 1000mg/hr
+                concentration = (dose / bagSize).toFixed(2);
+                mgPerHour = (dose / (infusionTime / 60)).toFixed(2);
+            }
+
+            rate = Math.round((bagSize / (infusionTime / 60)));
+
+            return {
+                dose: dose,
+                bagSize: bagSize,
+                infusionTime: infusionTime,
+                rate: rate,
+                concentration: concentration,
+                mgPerHour: mgPerHour
+            };
+        }
+
+        function displayResult(result) {
+            const resultDiv = document.getElementById('result');
+            let doseDisplay = result.dose >= 1000
+                ? `${result.dose}mg (${(result.dose / 1000).toFixed(2)}GM)`
+                : `${result.dose}mg`;
+            let gmPerHour = (result.mgPerHour / 1000).toFixed(2);
+
+            resultDiv.innerHTML = `
+        <p>For a ${doseDisplay} dose:</p>
+        <p>Use ${result.bagSize}ml bag of NS or D5W</p>
+        <p>Infusion time: ${result.infusionTime} minutes (rate ${result.rate}ml/hr [${gmPerHour}GM/hr])</p>
+        <p>Resulting concentration: ${result.concentration}mg/ml</p>
+    `;
+
+            if (parseFloat(result.concentration) > 5) {
+                resultDiv.innerHTML += '<p class="warning">Warning: Concentration exceeds 5mg/ml</p>';
+            }
+
+            if (parseFloat(result.mgPerHour) > 1000) {
+                resultDiv.innerHTML += '<p class="warning">Warning: Rate exceeds 1000mg/hour, risk of red man syndrome</p>';
+            }
+        }
+    </script>
+</body>
+
+</html>
