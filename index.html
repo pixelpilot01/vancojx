@@ -153,8 +153,10 @@
 
         function displayResult(result) {
             const resultDiv = document.getElementById('result');
+            let gmValue = result.dose / 1000;
+            let formattedGmValue = gmValue.toFixed(2).replace(/\.?0+$/, '');
             let doseDisplay = result.dose >= 1000
-                ? `${result.dose}mg (${(result.dose / 1000).toFixed(2)}GM)`
+                ? `${result.dose}mg (${formattedGmValue}GM)`
                 : `${result.dose}mg`;
             let gmPerHour = (result.mgPerHour / 1000).toFixed(2);
 
